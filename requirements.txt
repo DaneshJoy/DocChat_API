@@ -1,3 +1,5 @@
 fastapi
 pydantic
 uvicorn
+farm-haystack[all, crawler]
+webdriver_manager
