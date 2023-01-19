@@ -1,0 +1,30 @@
+You need to add the following line to your ~/.bash_profile or ~/.bashrc file.
+export PATH="/home/ubuntu/.local/bin:$PATH"
+
+source ~/.bash_profile
+
+sudo apt install ffmpeg
+
+wget --no-check-certificate https://dl.xpdfreader.com/xpdf-tools-linux-4.04.tar.gz &&
+                   tar -xvf xpdf-tools-linux-4.04.tar.gz && sudo cp xpdf-tools-linux-4.04/bin64/pdftotext /usr/local/bin
+
+----------
+
+sudo apt install nginx
+
+cd /etc/nginx/sites-enabled/
+sudo nano fastapi_nginx
+
+Inside this file, we have to specify the following and replace the ip with your public ip:
+
+server {
+    listen 80;
+    server_name 18.116.199.161;
+    location / {
+        proxy_pass http://0.0.0.0:8000;
+    }
+}
+
+sudo service nginx restart
+
+run the app and access via port 80

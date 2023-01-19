@@ -1,0 +1,38 @@
+Add a self-signed SSL certificate using OpenSSL
+Install OpenSSL and create the /etc/nginx/ssl directory:
+
+sudo apt-get install openssl
+cd /etc/nginx
+sudo mkdir ssl
+Then, we create the self-signed SSL certificate using this command:
+
+sudo openssl req -batch -x509 -nodes -days 365 \
+-newkey rsa:2048 \
+-keyout /etc/nginx/ssl/server.key \
+-out /etc/nginx/ssl/server.crt
+After that, we add this certificate to our server block configuration:
+
+cd /etc/nginx/sites-enabled/
+sudo nano fastapi_nginx
+Inside the file we make the following modification:
+
+server {
+    listen 80;
+    listen 443 ssl;
+    ssl on;
+    ssl_certificate /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+    server_name 18.116.199.161;
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+    }
+}
+We save that file (Ctrl X) and then restart Nginx:
+
+sudo service nginx restart
+Finally, we run our API:
+
+cd path/to/Deploying-FastAPI-using-Nginx
+python3 -m uvicorn main:app
+If everything works correctly, you should now be able to access your server over HTTPS (https://{your EC2 public IP}/).
+Your web browser (in this case I am using Firefox) may display a warning 

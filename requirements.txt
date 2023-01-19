@@ -1,5 +1,7 @@
 fastapi
 pydantic
 uvicorn
-farm-haystack[all-gpu, crawler]
+farm-haystack[all-gpu]
+farm-haystack[crawler]
+numpy==1.23.5
 webdriver_manager
