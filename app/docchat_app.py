@@ -1,5 +1,6 @@
 import os
 from typing import Optional
+from requests import get
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -40,6 +41,8 @@ class Url(BaseModel):
 
 @app.get('/')
 async def root(request: Request):
+    # local ip: <a href={request.url._url}docs>{request.url._url}docs/</a>
+    ip = get('https://api.ipify.org').content.decode('utf8')
     html_content = f"""
     <html>
         <head>
@@ -51,7 +54,7 @@ async def root(request: Request):
             <h2>► Here is the root URL</h2>
             <ul style="display:inline;">
                 <li> • Visit <strong>
-                    <a href={request.url._url}docs>{request.url._url}docs/</a>
+                    <a href={ip}/docs>{ip}/docs/</a>
                 </strong> to view and test API endpoints</li>
             </ul>
         </body></center>
