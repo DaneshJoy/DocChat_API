@@ -54,7 +54,7 @@ async def root(request: Request):
             <h2>► Here is the root URL</h2>
             <ul style="display:inline;">
                 <li> • Visit <strong>
-                    <a href={ip}/docs>{ip}/docs/</a>
+                    <a href=/docs>{ip}/docs/</a>
                 </strong> to view and test API endpoints</li>
             </ul>
         </body></center>
