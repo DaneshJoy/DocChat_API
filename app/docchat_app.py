@@ -61,17 +61,20 @@ class AiQA(object):
         #                             duplicate_documents='overwrite',
         #                             recreate_index=False)
 
-        # if os.path.exists(SQL_FILE) and os.path.exists('faiss_doc_store.json'):
-        #     self.document_store = FAISSDocumentStore.load(SQL_FILE)
+        if os.path.exists(SQL_FILE) and os.path.exists('my_faiss.json'):
+            self.document_store = FAISSDocumentStore.load(faiss_file_path="my_faiss",
+                                                          sql_url=f"sqlite:///{SQL_FILE}",
+                                                          index="document")
         # if os.path.exists(SQL_FILE):
         #     os.remove(SQL_FILE)
-        # self.document_store = FAISSDocumentStore(embedding_dim=128,
-        #                             faiss_index_factory_str="Flat",
-        #                             sql_url=f"sqlite:///{SQL_FILE}")
+        else:
+            self.document_store = FAISSDocumentStore(embedding_dim=128,
+                                        faiss_index_factory_str="Flat",
+                                        sql_url=f"sqlite:///{SQL_FILE}")
 
-        self.document_store = FAISSDocumentStore(embedding_dim=128,
-                                                 faiss_index_factory_str="Flat",
-                                                 sql_url=f"sqlite://")
+        # self.document_store = FAISSDocumentStore(embedding_dim=128,
+        #                                          faiss_index_factory_str="Flat",
+        #                                          sql_url=f"sqlite://")
 
         self.retriever = None
         self.generator = None
@@ -91,7 +94,7 @@ class AiQA(object):
     #     cls.document_store.update_embeddings(cls.retriever)
 
 
-    def create_index_faiss(self, docs, faiss_path):
+    def create_index_faiss(self, docs):
         # cls.document_store= FAISSDocumentStore.load(faiss_path)
 
         self.document_store.write_documents(docs)
@@ -109,6 +112,8 @@ class AiQA(object):
 
         self.document_store.update_embeddings(retriever=self.retriever,
             update_existing_embeddings=False)
+
+        self.document_store.save("my_faiss")
 
     def answer(self, question):
         if self.generator is None:
@@ -270,6 +275,16 @@ def answer(question: str):
     # res = pipe.run(question, params={"Retriever": {"top_k": k_retriever}})
 
     # print_answers(res, details="minimum")
+    if aiqa.retriever == None:
+        aiqa.retriever = DensePassageRetriever(
+                document_store=aiqa.document_store,
+                query_embedding_model="vblagoje/dpr-question_encoder-single-lfqa-wiki",
+                passage_embedding_model="vblagoje/dpr-ctx_encoder-single-lfqa-wiki",
+                use_gpu=False
+        )
+
+    aiqa.document_store.update_embeddings(retriever=aiqa.retriever,
+                                          update_existing_embeddings=False)
     aiqa.answer(question)
     for i in range(3):
         print(aiqa.res['answers'][0].meta['content'][i])
