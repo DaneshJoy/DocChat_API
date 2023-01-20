@@ -138,7 +138,7 @@ class AiQA:
         #                             duplicate_documents='overwrite',
         #                             recreate_index=False)
 
-        if os.path.exists(SQL_FILE):
+        if os.path.exists(SQL_FILE) and os.path.exists('faiss_doc_store.json'):
             cls.document_store = FAISSDocumentStore.load(SQL_FILE)
         else:
             cls.document_store = FAISSDocumentStore(embedding_dim=128,
