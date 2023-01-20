@@ -120,7 +120,7 @@ def process_docs():
     return {"message": f"Successfully processed {len(all_docs)} document(s) and created {len(docs_default)} passages"}
 
 @app.post('/doc/get_docs')
-def get_docs(files: List[UploadFile]):
+async def get_docs(files: List[UploadFile]):
     for file in files:
         contents = await file.read()
         with open(os.path.join(PROCESSED_DOCS, file.filename), 'wb') as f:
