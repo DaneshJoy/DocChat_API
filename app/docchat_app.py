@@ -16,7 +16,7 @@ from haystack.nodes import PreProcessor
 
 # from haystack.document_stores import MilvusDocumentStore
 from haystack.document_stores import FAISSDocumentStore
-from haystack.nodes import DensePassageRetriever
+from haystack.nodes import DensePassageRetriever, EmbeddingRetriever
 from haystack.utils import convert_files_to_docs, clean_wiki_text
 from haystack.nodes import Seq2SeqGenerator
 from haystack.pipelines import GenerativeQAPipeline
@@ -61,12 +61,17 @@ class AiQA(object):
         #                             duplicate_documents='overwrite',
         #                             recreate_index=False)
 
-        if os.path.exists(SQL_FILE) and os.path.exists('faiss_doc_store.json'):
-            self.document_store = FAISSDocumentStore.load(SQL_FILE)
-        else:
-            self.document_store = FAISSDocumentStore(embedding_dim=128,
-                                        faiss_index_factory_str="Flat",
-                                        sql_url=f"sqlite:///{SQL_FILE}")
+        # if os.path.exists(SQL_FILE) and os.path.exists('faiss_doc_store.json'):
+        #     self.document_store = FAISSDocumentStore.load(SQL_FILE)
+        # if os.path.exists(SQL_FILE):
+        #     os.remove(SQL_FILE)
+        # self.document_store = FAISSDocumentStore(embedding_dim=128,
+        #                             faiss_index_factory_str="Flat",
+        #                             sql_url=f"sqlite:///{SQL_FILE}")
+
+        self.document_store = FAISSDocumentStore(embedding_dim=128,
+                                                 faiss_index_factory_str="Flat",
+                                                 sql_url=f"sqlite://")
 
         self.retriever = None
         self.generator = None
