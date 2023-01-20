@@ -1,4 +1,5 @@
 import os
+import shutil
 from typing import Optional
 import requests
 from typing import List
@@ -228,6 +229,11 @@ def index_documents():
     p_retrieval = DocumentSearchPipeline(AiQA.retriever)
     res = p_retrieval.run(query="Tell me something about global greenhouse gas emissions?", params={"Retriever": {"top_k": 5}})
     print_documents(res, max_text_len=512)
+
+    if os.path.exists(PROCESSED_DOCS):
+        shutil.rmtree(PROCESSED_DOCS)
+    if not os.path.exists(PROCESSED_DOCS):
+        os.makedirs(PROCESSED_DOCS)
 
     return {"message": f"Successfully indexed processed passages"}
 
