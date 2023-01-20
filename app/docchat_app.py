@@ -200,6 +200,7 @@ async def get_docs(files: List[UploadFile]):
 
 @app.get("/ai/index")
 def index_documents():
+    global aiqa
     # # Convert files to docs + cleaning
     docs = convert_files_to_docs(dir_path=PROCESSED_DOCS,
                                 clean_func=clean_wiki_text,
@@ -241,6 +242,7 @@ def index_documents():
 
 @app.get('/ai/answer/{question}')
 def answer(question: str):
+    global aiqa
     # %% Generator
     # generator = Seq2SeqGenerator(model_name_or_path="vblagoje/bart_lfqa",
     #                             use_gpu=True)
