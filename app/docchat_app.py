@@ -229,7 +229,7 @@ def index_documents():
                                 split_paragraphs=True)
 
     # AiQA.create_index_milvus(docs)
-    aiqa.create_index_faiss(docs, "faiss_index.faiss")
+    aiqa.create_index_faiss(docs)
 
     # %% ----------------MILVUS----------------
     # document_store = MilvusDocumentStore(host='192.168.1.17',
