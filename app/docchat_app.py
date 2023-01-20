@@ -1,6 +1,7 @@
 import os
 from typing import Optional
-from requests import get
+import requests
+from typing import List
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -42,7 +43,7 @@ class Url(BaseModel):
 @app.get('/')
 async def root(request: Request):
     # local ip: <a href={request.url._url}docs>{request.url._url}docs/</a>
-    ip = get('https://api.ipify.org').content.decode('utf8')
+    ip = requests.get('https://api.ipify.org').content.decode('utf8')
     html_content = f"""
     <html>
         <head>
@@ -117,6 +118,16 @@ def process_docs():
 
     return {"message": f"Successfully processed {len(all_docs)} document(s) and created {len(docs_default)} passages"}
 
+@app.post('/doc/get_docs')
+def get_docs(files: List[UploadFile]):
+    for file in files:
+        contents = await file.read()
+        with open(os.path.join(PROCESSED_DOCS, file.filename), 'wb') as f:
+            f.write(contents)
+    index_documents()
+    # return {"filenames": [file.filename for file in files]}
+    return {f"Received and indexed {len(files)} documents"}
+
 
 class AiQA:
     @classmethod
@@ -126,13 +137,17 @@ class AiQA:
         #                             duplicate_documents='overwrite',
         #                             recreate_index=False)
 
-        cls.document_store = FAISSDocumentStore(embedding_dim=128,
-                                    faiss_index_factory_str="Flat",
-                                    sql_url=f"sqlite:///{SQL_FILE}")
+        if os.path.exists(SQL_FILE):
+            cls.document_store = FAISSDocumentStore.load(SQL_FILE)
+        else:
+            cls.document_store = FAISSDocumentStore(embedding_dim=128,
+                                        faiss_index_factory_str="Flat",
+                                        sql_url=f"sqlite:///{SQL_FILE}")
 
+        cls.retriever = None
         cls.generator = None
-    
-    
+
+
     # @classmethod
     # def create_index_milvus(cls, docs):
     #     cls.document_store.write_documents(docs)
@@ -156,15 +171,16 @@ class AiQA:
         # %% Initialize Retriever and Reader/Generator
 
         # Retriever (DPR)
+        if cls.retriever == None:
+            cls.retriever = DensePassageRetriever(
+                document_store=cls.document_store,
+                query_embedding_model="vblagoje/dpr-question_encoder-single-lfqa-wiki",
+                passage_embedding_model="vblagoje/dpr-ctx_encoder-single-lfqa-wiki",
+                use_gpu=False
+            )
 
-        cls.retriever = DensePassageRetriever(
-            document_store=cls.document_store,
-            query_embedding_model="vblagoje/dpr-question_encoder-single-lfqa-wiki",
-            passage_embedding_model="vblagoje/dpr-ctx_encoder-single-lfqa-wiki",
-            use_gpu=False
-        )
-
-        cls.document_store.update_embeddings(cls.retriever)
+        cls.document_store.update_embeddings(retriever=cls.retriever,
+            update_existing_embeddings=False)
     
     @classmethod
     def answer(cls, question):

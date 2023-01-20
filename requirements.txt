@@ -1,8 +1,8 @@
 fastapi
 pydantic
 uvicorn
+python-multipart
 farm-haystack[all-gpu]
 farm-haystack[crawler]
-numpy==1.23.5
 webdriver_manager
-python-multipart
+numpy==1.23.5
