@@ -42,7 +42,19 @@ class Url(BaseModel):
     url: str
 
 
-class AiQA:
+class Singleton(type):
+    def __init__(cls, name, bases, dict):
+        super(Singleton, cls).__init__(name, bases, dict)
+        cls.instance = None
+
+    def __call__(cls,*args,**kw):
+        if cls.instance is None:
+            cls.instance = super(Singleton, cls).__call__(*args, **kw)
+        return cls.instance
+
+
+class AiQA(object):
+    __metaclass__ = Singleton
     def __init__(self):
         # cls.document_store = MilvusDocumentStore(host='192.168.1.17',
         #                             embedding_dim=128,
@@ -200,7 +212,7 @@ async def get_docs(files: List[UploadFile]):
 
 @app.get("/ai/index")
 def index_documents():
-    global aiqa
+    aiqa = AiQA()
     # # Convert files to docs + cleaning
     docs = convert_files_to_docs(dir_path=PROCESSED_DOCS,
                                 clean_func=clean_wiki_text,
@@ -242,7 +254,7 @@ def index_documents():
 
 @app.get('/ai/answer/{question}')
 def answer(question: str):
-    global aiqa
+    aiqa = AiQA()
     # %% Generator
     # generator = Seq2SeqGenerator(model_name_or_path="vblagoje/bart_lfqa",
     #                             use_gpu=True)
