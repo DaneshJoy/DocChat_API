@@ -62,7 +62,7 @@ class AiQA(object):
         #                             recreate_index=False)
 
         if os.path.exists(SQL_FILE) and os.path.exists('my_faiss.json'):
-            self.document_store = FAISSDocumentStore.load(faiss_file_path="my_faiss",
+            self.document_store = FAISSDocumentStore.load(index_path="my_faiss",
                                                           sql_url=f"sqlite:///{SQL_FILE}",
                                                           index="document")
         # if os.path.exists(SQL_FILE):
