@@ -292,37 +292,40 @@ def index_documents(user: str):
 
 @app.post('/doc/get_related_contents')
 def get_related_contents(user: User):
-    # for _file in [SQL_FILE, FAISS_FILE]:
-    #     _path = os.path.join(user.name, _file)
-    #     if os.path.exists(_path):
-    #         os.remove(_path)
+    for _file in [SQL_FILE, FAISS_FILE]:
+        _path = os.path.join(user.name, _file)
+        if os.path.exists(_path):
+            os.remove(_path)
 
-    if os.path.exists(os.path.join(user.name, FAISS_FILE)):
-        document_store = FAISSDocumentStore.load(index_path = os.path.join(user.name, FAISS_FILE))
-    else:
-        document_store = FAISSDocumentStore(embedding_dim=128,
-                                            faiss_index_factory_str="Flat",
-                                            sql_url=f"sqlite:///{os.path.join(user.name, SQL_FILE)}")
-        retriever = DensePassageRetriever(
-                document_store=document_store,
-                query_embedding_model="vblagoje/dpr-question_encoder-single-lfqa-wiki",
-                passage_embedding_model="vblagoje/dpr-ctx_encoder-single-lfqa-wiki",
-                use_gpu=False
-        )
-
-        document_store.update_embeddings(retriever=retriever,
-                                         update_existing_embeddings=False)
+    # if os.path.exists(os.path.join(user.name, FAISS_FILE)):
+    #     document_store = FAISSDocumentStore.load(index_path = os.path.join(user.name, FAISS_FILE))
+    # else:
+    document_store = FAISSDocumentStore(embedding_dim=128,
+                                        faiss_index_factory_str="Flat",
+                                        sql_url=f"sqlite:///{os.path.join(user.name, SQL_FILE)}")
 
     docs = convert_files_to_docs(dir_path=os.path.join(user.name, PROCESSED_DOCS),
                                  clean_func=clean_wiki_text,
                                  split_paragraphs=True)
+
     document_store.write_documents(docs)
 
-    document_store.save(os.path.join(user.name, FAISS_FILE))
+    retriever = DensePassageRetriever(
+            document_store=document_store,
+            query_embedding_model="vblagoje/dpr-question_encoder-single-lfqa-wiki",
+            passage_embedding_model="vblagoje/dpr-ctx_encoder-single-lfqa-wiki",
+            use_gpu=False
+    )
+
+    document_store.update_embeddings(retriever=retriever,
+                                     update_existing_embeddings=False)
+
+    # document_store.save(os.path.join(user.name, FAISS_FILE))
 
     p_retrieval = DocumentSearchPipeline(retriever)
     res = p_retrieval.run(query=user.question, params={"Retriever": {"top_k": 3}})
     return res
+
 
 @app.post('/ai/answer/{question}')
 def answer(question: str, user: User):
