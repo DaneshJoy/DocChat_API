@@ -246,7 +246,7 @@ async def get_chunks(files: List[UploadFile], user: str):
             with open(os.path.join(out_dir, file.filename), 'wb') as f:
                 f.write(contents)
 
-        index_documents(user)
+        # index_documents(user)
         # return {"filenames": [file.filename for file in files]}
         return {"message": f'Received and indexed {len(files)} documents for "{user}"'}
 
