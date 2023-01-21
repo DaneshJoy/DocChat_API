@@ -235,7 +235,7 @@ def process_docs(user: User):
 @app.post('/doc/send_chunks')
 async def get_chunks(files: List[UploadFile], request: Request):
     try:
-        user = request.json()
+        user = await request.json()
         print('User:', user)
     #     out_dir = os.path.join(user, PROCESSED_DOCS)
     #     if not os.path.exists(out_dir):
