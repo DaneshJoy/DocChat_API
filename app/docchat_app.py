@@ -318,6 +318,7 @@ def get_related_contents(user: User):
 
     p_retrieval = DocumentSearchPipeline(retriever)
     res = p_retrieval.run(query=user.question, params={"Retriever": {"top_k": 3}})
+    return res
 
 @app.post('/ai/answer/{question}')
 def answer(question: str, user: User):
