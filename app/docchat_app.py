@@ -292,9 +292,14 @@ def index_documents(user: str):
 
 @app.post('/doc/get_related_contents')
 def get_related_contents(user: User):
+    for _file in [SQL_FILE, FAISS_FILE]:
+        _path = os.path.join(user.name, _file)
+        if os.path.exists(_path):
+            os.remove(_path)
+
     document_store = FAISSDocumentStore(embedding_dim=128,
                                         faiss_index_factory_str="Flat",
-                                        sql_url=f"sqlite:///{SQL_FILE}")
+                                        sql_url=f"sqlite:///{os.path.join(user.name, SQL_FILE)}")
 
     docs = convert_files_to_docs(dir_path=os.path.join(user.name, PROCESSED_DOCS),
                                  clean_func=clean_wiki_text,
