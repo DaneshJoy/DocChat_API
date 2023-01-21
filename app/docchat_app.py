@@ -38,6 +38,10 @@ class Url(BaseModel):
     url: str
 
 
+class User(BaseModel):
+    name: str
+
+
 class AiQA:
     # Create a Singleton class
     def __new__(cls, *args, **kwargs):
@@ -142,25 +146,25 @@ async def root(request: Request):
 
 
 @app.post("/doc/clear")
-def clear(user: str):
+def clear(user: User):
     try:
         for _dir in [DOCS_DIR, TXT_DIR, LINK_DIR, PROCESSED_DOCS]:
-            _path = os.path.join(user, _dir)
+            _path = os.path.join(user.name, _dir)
             if os.path.exists(_path):
                 shutil.rmtree(_path)
 
         for _file in [SQL_FILE, FAISS_FILE]:
-            _path = os.path.join(user, _file)
+            _path = os.path.join(user.name, _file)
             if os.path.exists(_path):
                 os.remove(_path)
-        return {"message": f'Cleared all documents of "{user}"'}
+        return {"message": f'Cleared all documents of "{user.name}"'}
     except Exception as e:
-        return {"message": f'Clearing all documents of "{user}" failed: {e}'}
+        return {"message": f'Clearing all documents of "{user.name}" failed: {e}'}
 
 
 @app.post("/doc/from_url")
-async def get_url(link: Url, user: str):
-    out_dir = os.path.join(user, LINK_DIR)
+async def get_url(link: Url, user: User):
+    out_dir = os.path.join(user.name, LINK_DIR)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
@@ -170,8 +174,8 @@ async def get_url(link: Url, user: str):
 
 
 @app.post("/doc/upload_doc")
-def upload_doc(user: str, file: UploadFile = File(...)):
-    out_dir = os.path.join(user, DOCS_DIR)
+def upload_doc(user: User, file: UploadFile = File(...)):
+    out_dir = os.path.join(user.name, DOCS_DIR)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     try:
@@ -189,11 +193,11 @@ def upload_doc(user: str, file: UploadFile = File(...)):
 
 
 @app.post("/doc/process_docs")
-def process_docs(user: str):
+def process_docs(user: User):
     # %% All doc types
-    all_docs = convert_files_to_docs(dir_path=os.path.join(user, DOCS_DIR))
+    all_docs = convert_files_to_docs(dir_path=os.path.join(user.name, DOCS_DIR))
 
-    out_dir = os.path.join(user, TXT_DIR)
+    out_dir = os.path.join(user.name, TXT_DIR)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
@@ -216,7 +220,7 @@ def process_docs(user: str):
     docs_default = preprocessor.process(all_docs)
     print(f"n_docs_input: {len(all_docs)}\nn_docs_output: {len(docs_default)}")
 
-    out_dir = os.path.join(user, PROCESSED_DOCS)
+    out_dir = os.path.join(user.name, PROCESSED_DOCS)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
@@ -229,9 +233,9 @@ def process_docs(user: str):
 
 
 @app.post('/doc/send_chunks')
-async def get_chunks(files: List[UploadFile], user: str):
+async def get_chunks(files: List[UploadFile], user: User):
     try:
-        out_dir = os.path.join(user, PROCESSED_DOCS)
+        out_dir = os.path.join(user.name, PROCESSED_DOCS)
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
 
@@ -242,18 +246,18 @@ async def get_chunks(files: List[UploadFile], user: str):
 
         index_documents(user)
         # return {"filenames": [file.filename for file in files]}
-        return {f'Received and indexed {len(files)} documents for "{user}"'}
+        return {f'Received and indexed {len(files)} documents for "{user.name}"'}
 
     except Exception as e:
-        return {"message": f'Indexing documents of "{user}" failed: {e}'}
+        return {"message": f'Indexing documents of "{user.name}" failed: {e}'}
 
 
 @app.post("/ai/index")
-def index_documents(user: str):
-    aiqa = AiQA(user)
+def index_documents(user: User):
+    aiqa = AiQA(user.name)
     print("AiQA:", aiqa)
     # # Convert files to docs + cleaning
-    docs = convert_files_to_docs(dir_path=os.path.join(user, PROCESSED_DOCS),
+    docs = convert_files_to_docs(dir_path=os.path.join(user.name, PROCESSED_DOCS),
                                  clean_func=clean_wiki_text,
                                  split_paragraphs=True)
 
@@ -286,9 +290,9 @@ def index_documents(user: str):
 
 
 @app.post('/ai/answer/{question}')
-def answer(question: str, user: str):
+def answer(question: str, user: User):
     try:
-        aiqa = AiQA(user)
+        aiqa = AiQA(user.name)
         # %% Generator
         # generator = Seq2SeqGenerator(model_name_or_path="vblagoje/bart_lfqa",
         #                             use_gpu=True)
@@ -315,7 +319,7 @@ def answer(question: str, user: str):
         return {'answer': aiqa.res['answers'][0].answer}
 
     except Exception as e:
-        return {"message": f'Answering question from "{user}" failed: {e}'}
+        return {"message": f'Answering question from "{user.name}" failed: {e}'}
 
 
 if __name__ == '__main__':
