@@ -303,21 +303,20 @@ def get_related_contents(user: User):
         document_store = FAISSDocumentStore(embedding_dim=128,
                                             faiss_index_factory_str="Flat",
                                             sql_url=f"sqlite:///{os.path.join(user.name, SQL_FILE)}")
+        retriever = DensePassageRetriever(
+                document_store=document_store,
+                query_embedding_model="vblagoje/dpr-question_encoder-single-lfqa-wiki",
+                passage_embedding_model="vblagoje/dpr-ctx_encoder-single-lfqa-wiki",
+                use_gpu=False
+        )
+
+        document_store.update_embeddings(retriever=retriever,
+                                         update_existing_embeddings=False)
 
     docs = convert_files_to_docs(dir_path=os.path.join(user.name, PROCESSED_DOCS),
                                  clean_func=clean_wiki_text,
                                  split_paragraphs=True)
     document_store.write_documents(docs)
-
-    retriever = DensePassageRetriever(
-            document_store=document_store,
-            query_embedding_model="vblagoje/dpr-question_encoder-single-lfqa-wiki",
-            passage_embedding_model="vblagoje/dpr-ctx_encoder-single-lfqa-wiki",
-            use_gpu=False
-    )
-
-    document_store.update_embeddings(retriever=retriever,
-                                     update_existing_embeddings=False)
 
     document_store.save(os.path.join(user.name, FAISS_FILE))
 
