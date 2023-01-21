@@ -40,6 +40,7 @@ class Url(BaseModel):
 
 class User(BaseModel):
     name: str
+    question: Optional[str] = None
 
 
 class AiQA:
@@ -290,7 +291,7 @@ def index_documents(user: str):
     return {"message": f"Successfully indexed processed passages for {user}"}
 
 @app.post('/doc/get_related_contents')
-def get_related_contents(question: str, user: User):
+def get_related_contents(user: User):
     document_store = FAISSDocumentStore(embedding_dim=128,
                                         faiss_index_factory_str="Flat",
                                         sql_url=f"sqlite:///{SQL_FILE}")
@@ -311,7 +312,7 @@ def get_related_contents(question: str, user: User):
                                      update_existing_embeddings=False)
 
     p_retrieval = DocumentSearchPipeline(retriever)
-    res = p_retrieval.run(query=question, params={"Retriever": {"top_k": 3}})
+    res = p_retrieval.run(query=user.question, params={"Retriever": {"top_k": 3}})
 
 @app.post('/ai/answer/{question}')
 def answer(question: str, user: User):
