@@ -94,7 +94,7 @@ class AiQA:
 
         self.document_store.write_documents(docs)
 
-        # %% Initialize Retriever and Reader/Generator
+        # %% Initialize Retriever
 
         # Retriever (DPR)
         if self.retriever is None:
@@ -289,6 +289,29 @@ def index_documents(user: str):
 
     return {"message": f"Successfully indexed processed passages for {user}"}
 
+@app.post("doc/get_related_contents")
+def get_related_contents(question: str, user: User):
+    document_store = FAISSDocumentStore(embedding_dim=128,
+                                        faiss_index_factory_str="Flat",
+                                        sql_url=f"sqlite:///{SQL_FILE}")
+
+    docs = convert_files_to_docs(dir_path=os.path.join(user.name, PROCESSED_DOCS),
+                                 clean_func=clean_wiki_text,
+                                 split_paragraphs=True)
+    document_store.write_documents(docs)
+
+    retriever = DensePassageRetriever(
+            document_store=document_store,
+            query_embedding_model="vblagoje/dpr-question_encoder-single-lfqa-wiki",
+            passage_embedding_model="vblagoje/dpr-ctx_encoder-single-lfqa-wiki",
+            use_gpu=False
+    )
+
+    document_store.update_embeddings(retriever=retriever,
+                                     update_existing_embeddings=False)
+
+    p_retrieval = DocumentSearchPipeline(retriever)
+    res = p_retrieval.run(query=question, params={"Retriever": {"top_k": 3}})
 
 @app.post('/ai/answer/{question}')
 def answer(question: str, user: User):
