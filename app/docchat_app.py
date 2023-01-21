@@ -298,9 +298,7 @@ def get_related_contents(user: User):
     #         os.remove(_path)
 
     if os.path.exists(os.path.join(user.name, FAISS_FILE)):
-        document_store = FAISSDocumentStore.load(faiss_file_path=os.path.join(user.name, FAISS_FILE),
-                                                 sql_url=f"sqlite:///{os.path.join(user.name, SQL_FILE)}",
-                                                 index="document")
+        document_store = FAISSDocumentStore.load(index_path = os.path.join(user.name, FAISS_FILE))
     else:
         document_store = FAISSDocumentStore(embedding_dim=128,
                                             faiss_index_factory_str="Flat",
