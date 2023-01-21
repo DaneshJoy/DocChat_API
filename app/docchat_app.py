@@ -60,12 +60,12 @@ class AiQA:
 
         sql_path = os.path.join(user, SQL_FILE)
         idx_path = os.path.join(user, SQL_FILE)
-        if os.path.exists(sql_path) and os.path.exists(idx_path):
-            self.document_store = FAISSDocumentStore.load(index_path=FAISS_FILE)
-        elif os.path.exists(sql_path):
-            os.remove(sql_path)
-        elif os.path.exists(idx_path):
-            os.remove(idx_path)
+        # if os.path.exists(sql_path) and os.path.exists(idx_path):
+        #     self.document_store = FAISSDocumentStore.load(index_path=FAISS_FILE)
+        # elif os.path.exists(sql_path):
+        #     os.remove(sql_path)
+        # elif os.path.exists(idx_path):
+        #     os.remove(idx_path)
 
         if not os.path.exists(sql_path) and not os.path.exists(idx_path):
             self.document_store = FAISSDocumentStore(embedding_dim=128,
@@ -248,7 +248,7 @@ async def get_chunks(files: List[UploadFile], user: str):
 
         index_documents(user)
         # return {"filenames": [file.filename for file in files]}
-        return {f'Received and indexed {len(files)} documents for "{user}"'}
+        return {"message": f'Received and indexed {len(files)} documents for "{user}"'}
 
     except Exception as e:
         return {"message": f'Indexing documents of "{user}" failed: {e}'}
@@ -257,7 +257,6 @@ async def get_chunks(files: List[UploadFile], user: str):
 @app.get("/ai/index")
 def index_documents(user: str):
     aiqa = AiQA(user)
-    print("AiQA:", aiqa)
     # # Convert files to docs + cleaning
     docs = convert_files_to_docs(dir_path=os.path.join(user, PROCESSED_DOCS),
                                  clean_func=clean_wiki_text,
