@@ -233,7 +233,7 @@ def process_docs(user: User):
 
 
 @app.post('/doc/send_chunks')
-async def get_chunks(user: User = Depends(), files: List[UploadFile] = File(...)):
+async def get_chunks(files: List[UploadFile], user: User = Depends()):
     try:
         # user = await request.json()
         print('User:', user.dict().name)
