@@ -289,7 +289,7 @@ def index_documents(user: str):
 
     return {"message": f"Successfully indexed processed passages for {user}"}
 
-@app.post("doc/get_related_contents")
+@app.post('/doc/get_related_contents')
 def get_related_contents(question: str, user: User):
     document_store = FAISSDocumentStore(embedding_dim=128,
                                         faiss_index_factory_str="Flat",
