@@ -233,10 +233,10 @@ def process_docs(user: User):
 
 
 @app.post('/doc/send_chunks')
-async def get_chunks(files: List[UploadFile], user: User = Depends()):
+async def get_chunks(files: List[UploadFile], user: str):
     try:
         # user = await request.json()
-        print('User:', user.dict().name)
+        print('User:', user)
     #     out_dir = os.path.join(user, PROCESSED_DOCS)
     #     if not os.path.exists(out_dir):
     #         os.makedirs(out_dir)
@@ -251,7 +251,7 @@ async def get_chunks(files: List[UploadFile], user: User = Depends()):
     #     return {f'Received and indexed {len(files)} documents for "{user}"'}
     #
     except Exception as e:
-        return {"message": f'Indexing documents of "{user.dict().name}" failed: {e}'}
+        return {"message": f'Indexing documents of "{user}" failed: {e}'}
 
 
 @app.post("/ai/index")
