@@ -6,7 +6,7 @@ from typing import List
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-from fastapi import File, UploadFile, Form
+from fastapi import File, UploadFile, Depends
 from pydantic import BaseModel
 
 from haystack.nodes import Crawler
@@ -233,10 +233,10 @@ def process_docs(user: User):
 
 
 @app.post('/doc/send_chunks')
-async def get_chunks(files: List[UploadFile], name: str = Form(...)):
+async def get_chunks(user: User = Depends(), files: List[UploadFile] = File(...)):
     try:
         # user = await request.json()
-        print('User:', name)
+        print('User:', user.dict().name)
     #     out_dir = os.path.join(user, PROCESSED_DOCS)
     #     if not os.path.exists(out_dir):
     #         os.makedirs(out_dir)
@@ -251,7 +251,7 @@ async def get_chunks(files: List[UploadFile], name: str = Form(...)):
     #     return {f'Received and indexed {len(files)} documents for "{user}"'}
     #
     except Exception as e:
-        return {"message": f'Indexing documents of "{name}" failed: {e}'}
+        return {"message": f'Indexing documents of "{user.dict().name}" failed: {e}'}
 
 
 @app.post("/ai/index")
