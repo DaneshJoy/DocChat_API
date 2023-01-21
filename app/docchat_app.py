@@ -292,14 +292,19 @@ def index_documents(user: str):
 
 @app.post('/doc/get_related_contents')
 def get_related_contents(user: User):
-    for _file in [SQL_FILE, FAISS_FILE]:
-        _path = os.path.join(user.name, _file)
-        if os.path.exists(_path):
-            os.remove(_path)
+    # for _file in [SQL_FILE, FAISS_FILE]:
+    #     _path = os.path.join(user.name, _file)
+    #     if os.path.exists(_path):
+    #         os.remove(_path)
 
-    document_store = FAISSDocumentStore(embedding_dim=128,
-                                        faiss_index_factory_str="Flat",
-                                        sql_url=f"sqlite:///{os.path.join(user.name, SQL_FILE)}")
+    if os.path.exists(os.path.join(user.name, FAISS_FILE)):
+        document_store = FAISSDocumentStore.load(faiss_file_path=os.path.join(user.name, FAISS_FILE),
+                                                 sql_url=f"sqlite:///{os.path.join(user.name, SQL_FILE)}",
+                                                 index="document")
+    else:
+        document_store = FAISSDocumentStore(embedding_dim=128,
+                                            faiss_index_factory_str="Flat",
+                                            sql_url=f"sqlite:///{os.path.join(user.name, SQL_FILE)}")
 
     docs = convert_files_to_docs(dir_path=os.path.join(user.name, PROCESSED_DOCS),
                                  clean_func=clean_wiki_text,
@@ -315,6 +320,8 @@ def get_related_contents(user: User):
 
     document_store.update_embeddings(retriever=retriever,
                                      update_existing_embeddings=False)
+
+    document_store.save(os.path.join(user.name, FAISS_FILE))
 
     p_retrieval = DocumentSearchPipeline(retriever)
     res = p_retrieval.run(query=user.question, params={"Retriever": {"top_k": 3}})
