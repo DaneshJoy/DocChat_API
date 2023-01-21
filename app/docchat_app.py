@@ -233,21 +233,23 @@ def process_docs(user: User):
 
 
 @app.post('/doc/send_chunks')
-async def get_chunks(files: List[UploadFile], user: User):
+async def get_chunks(files: List[UploadFile], request: Request):
     try:
-        out_dir = os.path.join(user.name, PROCESSED_DOCS)
-        if not os.path.exists(out_dir):
-            os.makedirs(out_dir)
-
-        for file in files:
-            contents = await file.read()
-            with open(os.path.join(out_dir, file.filename), 'wb') as f:
-                f.write(contents)
-
-        index_documents(user)
-        # return {"filenames": [file.filename for file in files]}
-        return {f'Received and indexed {len(files)} documents for "{user.name}"'}
-
+        user = request.json()
+        print('User:', user)
+    #     out_dir = os.path.join(user, PROCESSED_DOCS)
+    #     if not os.path.exists(out_dir):
+    #         os.makedirs(out_dir)
+    #
+    #     for file in files:
+    #         contents = await file.read()
+    #         with open(os.path.join(out_dir, file.filename), 'wb') as f:
+    #             f.write(contents)
+    #
+    #     # index_documents(user)
+    #     # return {"filenames": [file.filename for file in files]}
+    #     return {f'Received and indexed {len(files)} documents for "{user}"'}
+    #
     except Exception as e:
         return {"message": f'Indexing documents of "{user.name}" failed: {e}'}
 
