@@ -42,26 +42,23 @@ class Url(BaseModel):
     url: str
 
 
-class Singleton(type):
-    def __init__(cls, name, bases, dict):
-        super(Singleton, cls).__init__(name, bases, dict)
-        cls.instance = None
+class AiQA():
+    # Create a Singleton class
+    def __new__(cls, *args, **kwds):
+        it = cls.__dict__.get("__it__")
+        if it is not None:
+            return it
+        cls.__it__ = it = object.__new__(cls)
+        it.init(*args, **kwds)
+        return it
 
-    def __call__(cls,*args,**kw):
-        if cls.instance is None:
-            cls.instance = super(Singleton, cls).__call__(*args, **kw)
-        return cls.instance
-
-
-class AiQA(object):
-    __metaclass__ = Singleton
-    def __init__(self):
+    def init(self):
         # cls.document_store = MilvusDocumentStore(host='192.168.1.17',
         #                             embedding_dim=128,
         #                             duplicate_documents='overwrite',
         #                             recreate_index=False)
 
-        if os.path.exists(SQL_FILE) and os.path.exists('my_faiss.json'):
+        if os.path.exists(SQL_FILE) and os.path.exists('my_faiss'):
             self.document_store = FAISSDocumentStore.load(index_path="my_faiss")
         # if os.path.exists(SQL_FILE):
         #     os.remove(SQL_FILE)
@@ -221,6 +218,7 @@ async def get_docs(files: List[UploadFile]):
 @app.get("/ai/index")
 def index_documents():
     aiqa = AiQA()
+    print("AiQA:", aiqa)
     # # Convert files to docs + cleaning
     docs = convert_files_to_docs(dir_path=PROCESSED_DOCS,
                                 clean_func=clean_wiki_text,
@@ -260,6 +258,7 @@ def index_documents():
 
     return {"message": f"Successfully indexed processed passages"}
 
+
 @app.get('/ai/answer/{question}')
 def answer(question: str):
     aiqa = AiQA()
@@ -287,6 +286,7 @@ def answer(question: str):
     for i in range(3):
         print(aiqa.res['answers'][0].meta['content'][i])
     return {'answer': aiqa.res['answers'][0].answer}
+
 
 if __name__ == '__main__':
     import uvicorn
